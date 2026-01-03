@@ -38,10 +38,37 @@ ipcMain.handle('generate-code', async (event, deviceId) => {
   }
 });
 
+ipcMain.handle('generate-public-key', async (event, privateKeyPem) => {
+  try {
+    const publicKeyObject = crypto.createPublicKey(privateKeyPem);
+    const publicKeyPem = publicKeyObject.export({ type: 'spki', format: 'pem' });
+    return { success: true, publicKey: publicKeyPem };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('generate-final-key', async (event, privateKeyPem, deviceId) => {
+  try {
+    const payload = { deviceId, issuedAt: Date.now() };
+    const payloadJson = JSON.stringify(payload);
+    const payloadB64 = Buffer.from(payloadJson).toString('base64');
+
+    const signer = crypto.createSign('RSA-SHA256');
+    signer.update(payloadB64);
+    const signature = signer.sign(privateKeyPem, 'base64');
+
+    const finalKey = `${payloadB64}.${signature}`;
+    return { success: true, finalKey };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
 function createWindow() {
   const win = new BrowserWindow({
-    width: 600,
-    height: 400,
+    width: 900,
+    height: 800,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,

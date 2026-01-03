@@ -3,51 +3,331 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Activation Code Generator</title>
+  <title>RSA Key Manager</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    input, button { margin: 10px 0; padding: 8px; }
-    textarea { width: 100%; height: 100px; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    .section {
+      margin-bottom: 25px;
+      padding: 20px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      background-color: #fafafa;
+    }
+    .section-title {
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #555;
+    }
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      resize: vertical;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+    button {
+      background-color: #007acc;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    button:hover {
+      background-color: #005a9e;
+    }
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    .button-group {
+      margin-top: 10px;
+    }
+    .file-input-wrapper {
+      position: relative;
+      display: inline-block;
+      margin-right: 10px;
+    }
+    .file-input-wrapper input[type=file] {
+      position: absolute;
+      left: -9999px;
+    }
+    .file-input-label {
+      background-color: #28a745;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      display: inline-block;
+    }
+    .file-input-label:hover {
+      background-color: #218838;
+    }
+    #message {
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 5px;
+      display: none;
+    }
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <h1>Activation Code Generator</h1>
-  <label for="deviceId">Device ID:</label><br>
-  <input type="text" id="deviceId" placeholder="Enter device ID" /><br>
-  <button id="generate">Generate Code</button><br>
-  <label>Public Key:</label><br>
-  <textarea id="publicKey" readonly></textarea><br>
-  <label>Activation Code:</label><br>
-  <textarea id="code" readonly></textarea><br>
-  <div id="message"></div>
+  <div class="container">
+    <h1>RSA Key Manager</h1>
+    
+    <div class="section">
+      <div class="section-title">1. Private Key (private.pem)</div>
+      <textarea id="privateKey" placeholder="Paste your private key here or upload a file..."></textarea>
+      <div class="button-group">
+        <div class="file-input-wrapper">
+          <input type="file" id="privateKeyFile" accept=".pem,.key">
+          <label for="privateKeyFile" class="file-input-label">Upload File</label>
+        </div>
+        <button id="clearPrivateKey">Clear</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">2. Public Key</div>
+      <textarea id="publicKey" readonly placeholder="Public key will be generated here..."></textarea>
+      <div class="button-group">
+        <button id="generatePublicKey" disabled>Generate Public Key</button>
+        <button id="copyPublicKey" disabled class="hidden">Copy Public Key</button>
+        <button id="exportPublicKey" disabled class="hidden">Export Public Key</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">3. Device ID</div>
+      <input type="text" id="deviceId" placeholder="Enter device ID or upload a file...">
+      <div class="button-group">
+        <div class="file-input-wrapper">
+          <input type="file" id="deviceIdFile" accept=".txt,.json">
+          <label for="deviceIdFile" class="file-input-label">Upload Device ID</label>
+        </div>
+        <button id="clearDeviceId">Clear</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">4. Final Activation Key</div>
+      <textarea id="finalKey" readonly placeholder="Final key will be generated here..."></textarea>
+      <div class="button-group">
+        <button id="generateFinalKey" disabled>Generate Final Key</button>
+        <button id="copyFinalKey" disabled class="hidden">Copy Final Key</button>
+        <button id="exportFinalKey" disabled class="hidden">Export Final Key</button>
+      </div>
+    </div>
+
+    <div id="message"></div>
+  </div>
 
   <script>
-    const generateBtn = document.getElementById('generate');
-    const deviceIdInput = document.getElementById('deviceId');
+    const privateKeyArea = document.getElementById('privateKey');
     const publicKeyArea = document.getElementById('publicKey');
-    const codeArea = document.getElementById('code');
+    const deviceIdInput = document.getElementById('deviceId');
+    const finalKeyArea = document.getElementById('finalKey');
     const messageDiv = document.getElementById('message');
 
-    generateBtn.addEventListener('click', async () => {
-      const deviceId = deviceIdInput.value.trim();
-      if (!deviceId) {
-        messageDiv.textContent = 'Please enter a device ID.';
-        return;
-      }
-      messageDiv.textContent = 'Generating...';
+    const generatePublicKeyBtn = document.getElementById('generatePublicKey');
+    const copyPublicKeyBtn = document.getElementById('copyPublicKey');
+    const exportPublicKeyBtn = document.getElementById('exportPublicKey');
+    const generateFinalKeyBtn = document.getElementById('generateFinalKey');
+    const copyFinalKeyBtn = document.getElementById('copyFinalKey');
+    const exportFinalKeyBtn = document.getElementById('exportFinalKey');
+
+    let currentPublicKey = '';
+    let currentPrivateKey = '';
+
+    function showMessage(message, isError = false) {
+      messageDiv.textContent = message;
+      messageDiv.className = isError ? 'error' : 'success';
+      messageDiv.style.display = 'block';
+      setTimeout(() => {
+        messageDiv.style.display = 'none';
+      }, 5000);
+    }
+
+    function updateButtonStates() {
+      const hasPrivateKey = privateKeyArea.value.trim() !== '';
+      const hasPublicKey = publicKeyArea.value.trim() !== '';
+      const hasDeviceId = deviceIdInput.value.trim() !== '';
+
+      generatePublicKeyBtn.disabled = !hasPrivateKey;
+      generateFinalKeyBtn.disabled = !hasPrivateKey || !hasDeviceId;
+
+      copyPublicKeyBtn.classList.toggle('hidden', !hasPublicKey);
+      exportPublicKeyBtn.classList.toggle('hidden', !hasPublicKey);
+      copyFinalKeyBtn.classList.toggle('hidden', finalKeyArea.value.trim() === '');
+      exportFinalKeyBtn.classList.toggle('hidden', finalKeyArea.value.trim() === '');
+    }
+
+    async function copyToClipboard(text) {
       try {
-        const result = await window.api.generateCode(deviceId);
-        if (result.success) {
-          publicKeyArea.value = result.publicKey;
-          codeArea.value = result.code;
-          messageDiv.textContent = 'Code generated successfully!';
-        } else {
-          messageDiv.textContent = 'Error: ' + result.error;
-        }
-      } catch (error) {
-        messageDiv.textContent = 'Error: ' + error.message;
+        await navigator.clipboard.writeText(text);
+        showMessage('Copied to clipboard!');
+      } catch (err) {
+        showMessage('Failed to copy to clipboard', true);
+      }
+    }
+
+    function downloadFile(content, filename) {
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    privateKeyArea.addEventListener('input', updateButtonStates);
+    deviceIdInput.addEventListener('input', updateButtonStates);
+
+    document.getElementById('privateKeyFile').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const text = await file.text();
+        privateKeyArea.value = text;
+        updateButtonStates();
+        showMessage('Private key loaded from file');
       }
     });
+
+    document.getElementById('deviceIdFile').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const text = await file.text();
+        deviceIdInput.value = text.trim();
+        updateButtonStates();
+        showMessage('Device ID loaded from file');
+      }
+    });
+
+    document.getElementById('clearPrivateKey').addEventListener('click', () => {
+      privateKeyArea.value = '';
+      publicKeyArea.value = '';
+      finalKeyArea.value = '';
+      currentPublicKey = '';
+      currentPrivateKey = '';
+      updateButtonStates();
+    });
+
+    document.getElementById('clearDeviceId').addEventListener('click', () => {
+      deviceIdInput.value = '';
+      finalKeyArea.value = '';
+      updateButtonStates();
+    });
+
+    generatePublicKeyBtn.addEventListener('click', async () => {
+      const privateKey = privateKeyArea.value.trim();
+      if (!privateKey) {
+        showMessage('Please enter a private key', true);
+        return;
+      }
+
+      try {
+        const result = await window.api.generatePublicKey(privateKey);
+        if (result.success) {
+          publicKeyArea.value = result.publicKey;
+          currentPublicKey = result.publicKey;
+          currentPrivateKey = privateKey;
+          updateButtonStates();
+          showMessage('Public key generated successfully!');
+        } else {
+          showMessage('Error: ' + result.error, true);
+        }
+      } catch (error) {
+        showMessage('Error: ' + error.message, true);
+      }
+    });
+
+    generateFinalKeyBtn.addEventListener('click', async () => {
+      const privateKey = privateKeyArea.value.trim();
+      const deviceId = deviceIdInput.value.trim();
+      
+      if (!privateKey || !deviceId) {
+        showMessage('Please enter both private key and device ID', true);
+        return;
+      }
+
+      try {
+        const result = await window.api.generateFinalKey(privateKey, deviceId);
+        if (result.success) {
+          finalKeyArea.value = result.finalKey;
+          updateButtonStates();
+          showMessage('Final key generated successfully!');
+        } else {
+          showMessage('Error: ' + result.error, true);
+        }
+      } catch (error) {
+        showMessage('Error: ' + error.message, true);
+      }
+    });
+
+    copyPublicKeyBtn.addEventListener('click', () => {
+      copyToClipboard(publicKeyArea.value);
+    });
+
+    exportPublicKeyBtn.addEventListener('click', () => {
+      downloadFile(publicKeyArea.value, 'public.pem');
+      showMessage('Public key exported!');
+    });
+
+    copyFinalKeyBtn.addEventListener('click', () => {
+      copyToClipboard(finalKeyArea.value);
+    });
+
+    exportFinalKeyBtn.addEventListener('click', () => {
+      downloadFile(finalKeyArea.value, 'activation_key.txt');
+      showMessage('Final key exported!');
+    });
+
+    updateButtonStates();
   </script>
 </body>
 </html>
