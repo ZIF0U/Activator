@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activation Code Generator</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    input, button { margin: 10px 0; padding: 8px; }
+    textarea { width: 100%; height: 100px; }
+  </style>
+</head>
+<body>
+  <h1>Activation Code Generator</h1>
+  <label for="deviceId">Device ID:</label><br>
+  <input type="text" id="deviceId" placeholder="Enter device ID" /><br>
+  <button id="generate">Generate Code</button><br>
+  <label>Public Key:</label><br>
+  <textarea id="publicKey" readonly></textarea><br>
+  <label>Activation Code:</label><br>
+  <textarea id="code" readonly></textarea><br>
+  <div id="message"></div>
+
+  <script>
+    const generateBtn = document.getElementById('generate');
+    const deviceIdInput = document.getElementById('deviceId');
+    const publicKeyArea = document.getElementById('publicKey');
+    const codeArea = document.getElementById('code');
+    const messageDiv = document.getElementById('message');
+
+    generateBtn.addEventListener('click', async () => {
+      const deviceId = deviceIdInput.value.trim();
+      if (!deviceId) {
+        messageDiv.textContent = 'Please enter a device ID.';
+        return;
+      }
+      messageDiv.textContent = 'Generating...';
+      try {
+        const result = await window.api.generateCode(deviceId);
+        if (result.success) {
+          publicKeyArea.value = result.publicKey;
+          codeArea.value = result.code;
+          messageDiv.textContent = 'Code generated successfully!';
+        } else {
+          messageDiv.textContent = 'Error: ' + result.error;
+        }
+      } catch (error) {
+        messageDiv.textContent = 'Error: ' + error.message;
+      }
+    });
+  </script>
+</body>
+</html>
