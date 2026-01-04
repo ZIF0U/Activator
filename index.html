@@ -134,8 +134,8 @@
       <textarea id="publicKey" readonly placeholder="Public key will be generated here..."></textarea>
       <div class="button-group">
         <button id="generatePublicKey" disabled>Generate Public Key</button>
-        <button id="copyPublicKey" disabled class="hidden">Copy Public Key</button>
-        <button id="exportPublicKey" disabled class="hidden">Export Public Key</button>
+        <button id="copyPublicKey" class="hidden">Copy Public Key</button>
+        <button id="exportPublicKey" class="hidden">Export Public Key</button>
       </div>
     </div>
 
@@ -156,8 +156,8 @@
       <textarea id="finalKey" readonly placeholder="Final key will be generated here..."></textarea>
       <div class="button-group">
         <button id="generateFinalKey" disabled>Generate Final Key</button>
-        <button id="copyFinalKey" disabled class="hidden">Copy Final Key</button>
-        <button id="exportFinalKey" disabled class="hidden">Export Final Key</button>
+        <button id="copyFinalKey" class="hidden">Copy Final Key</button>
+        <button id="exportFinalKey" class="hidden">Export Final Key</button>
       </div>
     </div>
 
@@ -314,7 +314,7 @@
     });
 
     exportPublicKeyBtn.addEventListener('click', () => {
-      downloadFile(publicKeyArea.value, 'public.pem');
+      downloadFile(publicKeyArea.value, 'public_key.txt');
       showMessage('Public key exported!');
     });
 
